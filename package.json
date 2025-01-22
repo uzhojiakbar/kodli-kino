@@ -1,0 +1,21 @@
+{
+  "name": "kinobot",
+  "version": "1.0.0",
+  "description": "Kodli kino bot. Dasturchi: Murodillayev Hojiakbar @anonim_opisis",
+  "main": "bot.js",
+  "scripts": {
+    "start": "node bot.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon bot.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.7.7",
+    "dotenv": "^16.4.5",
+    "mongoose": "^8.8.1",
+    "node-telegram-bot-api": "^0.66.0",
+    "nodemon": "^3.1.7"
+  }
+}
