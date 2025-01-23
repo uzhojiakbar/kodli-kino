@@ -63,6 +63,7 @@ bot.on("message", async (msg) => {
   if (!subscribed) {
   } else {
     if (isAdmin) {
+      const userInput = msg.text;
       await bot.sendMessage(chatId, "🛠️ Admin panelga xush kelibsiz!", {
         parse_mode: "Markdown",
         reply_markup: {
@@ -77,8 +78,59 @@ bot.on("message", async (msg) => {
           ],
         },
       });
+      if (/^\d+$/.test(userInput)) {
+        const lastDocument = await FIlmModel.findOne({ code: userInput });
+        console.log(lastDocument);
+
+        if (lastDocument) {
+          await bot.sendVideo(chatId, lastDocument.videoHash, {
+            parse_mode: "Markdown",
+            protect_content: true, // Forward qilishni taqiqlash
+            caption: `*Kino kodi:* \`${lastDocument.code}\`\n\n*Eng sara tarjima kinolar va seriallar faqat bizda 🍿\n🤖Bizning bot: @KinoDownload_Robot*`,
+          });
+        } else {
+          bot.sendMessage(
+            chatId,
+            "❌" + userInput + "<b> - code dagi kino mavjud emas!</b>",
+            {
+              parse_mode: "HTML",
+            }
+          );
+        }
+      }
     } else {
-      await bot.sendMessage(chatId, "SIZNING IDYINGIZ: " + chatId);
+      const chatId = msg.chat.id;
+      const userInput = msg.text;
+
+      // Foydalanuvchi faqat raqam kiritganligini tekshirish
+      if (/^\d+$/.test(userInput)) {
+        const lastDocument = await FIlmModel.findOne({ code: userInput });
+        console.log(lastDocument);
+
+        if (lastDocument) {
+          await bot.sendVideo(chatId, lastDocument.videoHash, {
+            parse_mode: "Markdown",
+            protect_content: true, // Forward qilishni taqiqlash
+            caption: `*Kino kodi:* \`${lastDocument.code}\`\n\n*Eng sara tarjima kinolar va seriallar faqat bizda 🍿\n🤖Bizning bot: @KinoDownload_Robot*`,
+          });
+        } else {
+          bot.sendMessage(
+            chatId,
+            "❌" + userInput + "<b> - code dagi kino mavjud emas!</b>",
+            {
+              parse_mode: "HTML",
+            }
+          );
+        }
+      }
+
+      bot.sendMessage(
+        chatId,
+        "<b>Assalamu aleykum! \n\n✍🏻 Kino kodini yuboring...</b>",
+        {
+          parse_mode: "HTML",
+        }
+      );
     }
   }
 
@@ -96,9 +148,13 @@ bot.on("callback_query", async (query) => {
   // OBUNANI TEKSHIRISH
   if (query.data === "check_subscription") {
     if (await subscribeCheck(bot, chatId)) {
-      bot.sendMessage(chatId, " <b>Tekshirishdik</b>✅. /start", {
-        parse_mode: "HTML",
-      });
+      bot.sendMessage(
+        chatId,
+        "<b>Assalamu aleykum! \n\n✍🏻 Kino kodini yuboring...</b>",
+        {
+          parse_mode: "HTML",
+        }
+      );
     } else {
       bot.sendMessage(
         chatId,
