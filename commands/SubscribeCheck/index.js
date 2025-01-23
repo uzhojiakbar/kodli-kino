@@ -19,7 +19,6 @@ async function subscribeCheck(bot, chatId) {
 
     //
     //
-    console.log(notSubscribedChannels, getAllChannels);
 
     if (notSubscribedChannels.length === 0) return true;
     else {

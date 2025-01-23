@@ -1,9 +1,10 @@
 require("dotenv").config();
 
 const Admin = require("../../models/AdminModel");
+const FIlmModel = require("../../models/FIlm.model");
 const MajburiyKanal = require("../../models/MajburiyKanal");
 const Users = require("../../models/Users");
-const callbackIds = {};
+let callbackIds = {};
 let waitingForAdmin = null; // Adminni kutish holati
 
 async function AdminPanel(bot, msg) {
@@ -14,7 +15,7 @@ async function AdminPanel(bot, msg) {
     parse_mode: "Markdown",
     reply_markup: {
       inline_keyboard: [
-        [{ text: "🎬 Kino qo'shish", callback_data: "addFilm" }],
+        [{ text: "🎬 Kino", callback_data: "Film" }],
         [
           { text: "📋 Adminlar", callback_data: "ShowAdmins" },
           { text: "📢 Kanallar", callback_data: "majburiyObuna" },
@@ -28,6 +29,9 @@ async function AdminPanel(bot, msg) {
   bot.on("callback_query", async (query) => {
     if (callbackIds[query.id]) return;
     callbackIds[query.id] = true;
+
+    console.log(callbackIds);
+
     const chatId = query.message.chat.id;
 
     await bot.answerCallbackQuery(query.id, {
@@ -69,9 +73,7 @@ async function AdminPanel(bot, msg) {
           },
         });
         break;
-
       //
-
       case "addAdmin":
         bot.deleteMessage(chatId, query.message.message_id);
         waitingForAdmin = chatId;
@@ -516,6 +518,177 @@ async function AdminPanel(bot, msg) {
               ],
             ],
           },
+        });
+
+        break;
+      //
+      case "Film":
+        if (query.message.message_id) {
+          bot.deleteMessage(chatId, query.message.message_id);
+        }
+
+        bot.sendMessage(chatId, "🎬 Kinolarni boshqarish", {
+          parse_mode: "Markdown",
+          reply_markup: {
+            inline_keyboard: [
+              [
+                {
+                  text: "🔎 Kod bo'yicha Qidirish",
+                  callback_data: "searchFilm",
+                },
+              ],
+              [
+                { text: "🎬 Kino qo'shish", callback_data: "addFilm" },
+                { text: "❌ Kino o'chirish", callback_data: "deleteFilm" },
+              ],
+              [
+                {
+                  text: "🔙 Orqaga",
+                  callback_data: "restartAdmin",
+                },
+              ],
+              // [],
+            ],
+          },
+        });
+
+        break;
+      //
+      case "addFilm":
+        if (query.message.message_id) {
+          bot.deleteMessage(chatId, query.message.message_id);
+        }
+        bot.sendMessage(chatId, "🎥 Kino yuklash uchun uni yuboring:");
+
+        const lastDocument =
+          (await FIlmModel.findOne().sort({ code: -1 }).exec()) || 0;
+        console.log("lastDocument", lastDocument);
+
+        bot.once("video", async (msg) => {
+          console.log("VIDEO CONNECTED");
+
+          const videoFileId = msg.video.file_id; // Video fayl ID sini olish
+          const targetChannel = -1002445594841; // Kanal ID
+
+          try {
+            // Oxirgi hujjatni olish
+            const lastDocument = await FIlmModel.findOne()
+              .sort({ code: -1 })
+              .exec();
+
+            // Videoni kanalga yuborish
+            const sentMessage = await bot.sendVideo(
+              targetChannel,
+              videoFileId,
+              {
+                parse_mode: "Markdown",
+                caption: `*Kino kodi:* \`${
+                  lastDocument ? lastDocument.code + 1 : 1
+                }\`\n\n*Eng sara tarjima kinolar va seriallar faqat bizda 🍿\n🤖Bizning bot: @KinoDownload_Robot*`,
+              }
+            );
+
+            // Yangi hujjatni yaratish
+            const newFIlm = new FIlmModel({
+              postId: sentMessage.message_id,
+              videoHash: videoFileId,
+              count: 0,
+              code: lastDocument ? lastDocument.code + 1 : 1, // Agar hujjat bo'lmasa, 1 dan boshlanadi
+            });
+
+            // Yangi hujjatni saqlash
+            await newFIlm.save();
+
+            bot.sendMessage(
+              msg.chat.id,
+              "✅ Video fayl muvaffaqiyatli yuklandi va kanalga joylandi!"
+            );
+          } catch (error) {
+            console.log("Kino yuklashda xatolik!", error);
+            bot.sendMessage(
+              msg.chat.id,
+              "❌ Video yuklashda xatolik yuz berdi!"
+            );
+          }
+        });
+
+        break;
+      case "deleteFilm":
+        bot.sendMessage(chatId, "🎬 O'chiriladigan kinoning kodini kiriting:");
+
+        bot.onText(/\/delFilm (\d+)/, async (msg, match) => {
+          const chatId = msg.chat.id;
+          const codeToDelete = parseInt(match[1]); // "delFilm <code>" formatida bo'lsa, code olish
+
+          if (isNaN(codeToDelete)) {
+            bot.sendMessage(
+              chatId,
+              "❌ Iltimos, to'g'ri kod kiriting: /delFilm <kod>"
+            );
+            return;
+          }
+
+          try {
+            // Code bo'yicha filmni topish
+            const filmToDelete = await FIlmModel.findOne({
+              code: codeToDelete,
+            }).exec();
+
+            if (!filmToDelete) {
+              bot.sendMessage(
+                chatId,
+                `❌ Kodga mos film topilmadi. (Kod: ${codeToDelete})`
+              );
+              return;
+            }
+
+            // Filmni o'chirish
+            await FIlmModel.deleteOne({ code: codeToDelete });
+
+            bot.sendMessage(
+              chatId,
+              `✅ Kodga mos film muvaffaqiyatli o'chirildi! (Kod: ${codeToDelete})`
+            );
+          } catch (error) {
+            console.log("Filmni o'chirishda xatolik:", error);
+            bot.sendMessage(chatId, "❌ Filmni o'chirishda xatolik yuz berdi.");
+          }
+        });
+
+        break;
+      case "searchFilm":
+        console.log(callbackIds);
+        bot.sendMessage(chatId, "<b>✍🏻 Kino kodini yuboring...</b>", {
+          parse_mode: "HTML",
+        });
+
+        bot.onText(/^\d+$/, async (msg) => {
+          const chatId = msg.chat.id;
+          const userInput = msg.text;
+
+          // Foydalanuvchi faqat raqam kiritganligini tekshirish
+          if (/^\d+$/.test(userInput)) {
+            const lastDocument = await FIlmModel.findOne({ code: userInput });
+            console.log(lastDocument);
+
+            if (lastDocument) {
+              await bot.sendVideo(chatId, lastDocument.videoHash, {
+                parse_mode: "Markdown",
+                protect_content: true, // Forward qilishni taqiqlash
+                caption: `*Kino kodi:* \`${lastDocument.code}\`\n\n*Eng sara tarjima kinolar va seriallar faqat bizda 🍿\n🤖Bizning bot: @KinoDownload_Robot*`,
+              });
+            } else {
+              bot.sendMessage(
+                chatId,
+                "❌" + userInput + "<b> - code dagi kino mavjud emas!</b>",
+                {
+                  parse_mode: "HTML",
+                }
+              );
+            }
+          } else {
+            bot.sendMessage(chatId, "❌ Iltimos, faqat raqam kiriting.");
+          }
         });
 
         break;

@@ -7,6 +7,8 @@ const AdminModel = require("./models/AdminModel");
 const { subscribeCheck } = require("./commands/SubscribeCheck");
 const { AdminPanel } = require("./commands/adminpanel");
 const Users = require("./models/Users");
+const FIlmModel = require("./models/FIlm.model");
+const MajburiyKanal = require("./models/MajburiyKanal");
 const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { polling: true });
 console.log("Bot faol! 👋");
 
@@ -17,6 +19,11 @@ mongoose
   .catch((err) => console.error("DB GA ULANISHDA XATOLIK BOR: ❌", err));
 
 // BEGIN
+
+require("dotenv").config();
+
+let callbackIds = {};
+let waitingForAdmin = null; // Adminni kutish holati
 
 const addUserIfNotExists = async (userId) => {
   try {
@@ -45,8 +52,8 @@ bot.on("message", async (msg) => {
   const chatId = msg.chat.id;
 
   const data = addUserIfNotExists(chatId);
+
   const subscribed = await subscribeCheck(bot, chatId);
-  console.log(subscribed);
 
   // const isAdmin = true;
 
@@ -81,5 +88,4 @@ bot.on("callback_query", async (query) => {
     }
   }
 });
-
 // bot.
