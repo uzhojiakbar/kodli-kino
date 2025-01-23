@@ -827,15 +827,19 @@ bot.on("callback_query", async (query) => {
       break;
     case "restartAdmin":
       bot.deleteMessage(chatId, query.message.message_id);
-      bot.sendMessage(chatId, "🛠️ Admin panelga xush kelibsiz!", {
+      await bot.sendMessage(chatId, "🛠️ Admin panelga xush kelibsiz!", {
         parse_mode: "Markdown",
         reply_markup: {
           inline_keyboard: [
+            [{ text: "🎬 Kino", callback_data: "Film" }],
             [
               { text: "📋 Adminlar", callback_data: "ShowAdmins" },
               { text: "📢 Kanallar", callback_data: "majburiyObuna" },
             ],
-            [{ text: "📊 Statistika", callback_data: "stat" }],
+            [
+              { text: "📊 Statistika", callback_data: "stat" },
+              { text: "✉️ Habar yuborish", callback_data: "send_broadcast" },
+            ],
             // [],
           ],
         },
