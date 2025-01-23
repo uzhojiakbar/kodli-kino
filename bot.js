@@ -6,6 +6,7 @@ const mongoose = require("mongoose");
 const AdminModel = require("./models/AdminModel");
 const { subscribeCheck } = require("./commands/SubscribeCheck");
 const { AdminPanel } = require("./commands/adminpanel");
+const Users = require("./models/Users");
 const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { polling: true });
 console.log("Bot faol! 👋");
 
@@ -17,9 +18,33 @@ mongoose
 
 // BEGIN
 
+const addUserIfNotExists = async (userId) => {
+  try {
+    // Foydalanuvchini topish
+    const user = await Users.findOne({ userId });
+
+    // Agar foydalanuvchi bor bo'lsa, hech narsa qilinmaydi
+    if (user) {
+      console.log("Foydalanuvchi mavjud.");
+      return;
+    }
+
+    // Agar foydalanuvchi yo'q bo'lsa, yangi foydalanuvchini qo'shamiz
+    const newUser = new Users({
+      userId,
+    });
+
+    await newUser.save();
+    console.log("Foydalanuvchi qo'shildi.");
+  } catch (error) {
+    console.error("Xato:", error);
+  }
+};
+
 bot.on("message", async (msg) => {
   const chatId = msg.chat.id;
 
+  const data = addUserIfNotExists(chatId);
   const subscribed = await subscribeCheck(bot, chatId);
   console.log(subscribed);
 

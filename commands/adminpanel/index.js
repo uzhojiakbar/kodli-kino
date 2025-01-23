@@ -2,6 +2,7 @@ require("dotenv").config();
 
 const Admin = require("../../models/AdminModel");
 const MajburiyKanal = require("../../models/MajburiyKanal");
+const Users = require("../../models/Users");
 const callbackIds = {};
 let waitingForAdmin = null; // Adminni kutish holati
 
@@ -17,6 +18,7 @@ async function AdminPanel(bot, msg) {
           { text: "📋 Adminlar", callback_data: "ShowAdmins" },
           { text: "📢 Kanallar", callback_data: "majburiyObuna" },
         ],
+        [{ text: "📊 Statistika", callback_data: "stat" }],
         // [],
       ],
     },
@@ -217,7 +219,7 @@ async function AdminPanel(bot, msg) {
                 [
                   {
                     text: "🔙 Orqaga",
-                    callback_data: "showChannels",
+                    callback_data: "majburiyObuna",
                   },
                 ],
               ],
@@ -308,7 +310,7 @@ async function AdminPanel(bot, msg) {
                 [
                   {
                     text: "🔙 Orqaga",
-                    callback_data: "showChannels",
+                    callback_data: "majburiyObuna",
                   },
                 ],
               ],
@@ -380,7 +382,15 @@ async function AdminPanel(bot, msg) {
           bot.sendMessage(chatId, "*📋Kanallar ro'yxati:*", {
             parse_mode: "Markdown",
             reply_markup: {
-              inline_keyboard: inlineKeyboard,
+              inline_keyboard: [
+                ...inlineKeyboard,
+                [
+                  {
+                    text: "🔙 Orqaga",
+                    callback_data: "majburiyObuna",
+                  },
+                ],
+              ],
             },
           });
         } else {
@@ -415,6 +425,99 @@ async function AdminPanel(bot, msg) {
         });
         break;
       //
+      case "stat":
+        bot.deleteMessage(chatId, query.message.message_id);
+
+        // Foydalanuvchilarni sanash uchun funksiyalar
+        const countUsersToday = async () => {
+          const today = new Date();
+          today.setHours(0, 0, 0, 0); // Bugungi kunning boshlanishi (soat 00:00)
+
+          const count = await Users.countDocuments({
+            joinedAt: { $gte: today }, // Bugungi kundan boshlab qo'shilgan foydalanuvchilar
+          });
+
+          return count;
+        };
+
+        const countUsersThisWeek = async () => {
+          const startOfWeek = new Date();
+          startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay()); // Haftaning birinchi kuni
+
+          const count = await Users.countDocuments({
+            joinedAt: { $gte: startOfWeek }, // Bu haftada qo'shilgan foydalanuvchilar
+          });
+
+          return count;
+        };
+
+        const countUsersThisMonth = async () => {
+          const startOfMonth = new Date();
+          startOfMonth.setDate(1); // Oyning birinchi kuni
+
+          const count = await Users.countDocuments({
+            joinedAt: { $gte: startOfMonth }, // Bu oyda qo'shilgan foydalanuvchilar
+          });
+
+          return count;
+        };
+
+        const countUsersThisYear = async () => {
+          const startOfYear = new Date();
+          startOfYear.setMonth(0, 1); // Yilning birinchi kuni (1-yanvar)
+
+          const count = await Users.countDocuments({
+            joinedAt: { $gte: startOfYear }, // Bu yilda qo'shilgan foydalanuvchilar
+          });
+
+          return count;
+        };
+
+        // Umumiy obunachilar soni
+        const countTotalUsers = async () => {
+          const total = await Users.countDocuments(); // Barcha foydalanuvchilar soni
+          return total;
+        };
+
+        // Statistikalarni olish
+        const today = await countUsersToday();
+        const thisWeek = await countUsersThisWeek();
+        const thisMonth = await countUsersThisMonth();
+        const thisYear = await countUsersThisYear();
+        const totalUsers = await countTotalUsers(); // To'liq foydalanuvchilar soni
+
+        // Xabarni tayyorlash
+        const message =
+          `🎉 <b>Botga qo'shilgan foydalanuvchilar statistikasini ko'ring:</b>\n` +
+          `\n` +
+          `📅 <b>Bugun</b>: ${today} ta yangi foydalanuvchi qo'shildi! ` +
+          `\n` +
+          `🗓️ <b>Bu hafta</b>: ${thisWeek} ta yangi foydalanuvchi qo'shildi! ` +
+          `\n` +
+          `📆 <b>Bu oy</b>: ${thisMonth} ta yangi foydalanuvchi qo'shildi! ` +
+          `\n` +
+          `🏆 <b>Bu yilda</b>: ${thisYear} ta yangi foydalanuvchi qo'shildi! ` +
+          `\n\n` +
+          `📊 <b>Jami foydalanuvchilar soni</b>: ${totalUsers} ta ` +
+          `\n` +
+          `🌟 <b>Bu juda ajoyib!</b> Botning rivojlanishi juda tez! `;
+
+        // Xabarni yuborish
+        bot.sendMessage(chatId, message, {
+          parse_mode: "HTML",
+          reply_markup: {
+            inline_keyboard: [
+              [
+                {
+                  text: "🔺 Bosh menuga",
+                  callback_data: "restartAdmin",
+                },
+              ],
+            ],
+          },
+        });
+
+        break;
 
       case "restartAdmin":
         bot.deleteMessage(chatId, query.message.message_id);
@@ -426,6 +529,8 @@ async function AdminPanel(bot, msg) {
                 { text: "📋 Adminlar", callback_data: "ShowAdmins" },
                 { text: "📢 Kanallar", callback_data: "majburiyObuna" },
               ],
+              [{ text: "📊 Statistika", callback_data: "stat" }],
+              // [],
             ],
           },
         });
