@@ -1,7 +1,8 @@
 const mongoose = require("mongoose");
 const MajburiyKanalSchema = new mongoose.Schema({
-  Buttonname: { type: String, required: true, unique: true },
   username: { type: String, required: true, unique: true },
+  id: { type: String, unique: true },
+  name: { type: String, unique: true },
 });
 
 // username -> @murodillayev_hojiakbar

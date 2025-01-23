@@ -1,5 +1,7 @@
-const mongoose = require("mongoose");
+require("dotenv").config();
+
 const Admin = require("../../models/AdminModel");
+const MajburiyKanal = require("../../models/MajburiyKanal");
 const callbackIds = {};
 let waitingForAdmin = null; // Adminni kutish holati
 
@@ -10,7 +12,13 @@ async function AdminPanel(bot, msg) {
   bot.sendMessage(chatId, "🛠️ Admin panelga xush kelibsiz!", {
     parse_mode: "Markdown",
     reply_markup: {
-      inline_keyboard: [[{ text: "📋 Adminlar", callback_data: "ShowAdmins" }]],
+      inline_keyboard: [
+        [
+          { text: "📋 Adminlar", callback_data: "ShowAdmins" },
+          { text: "📢 Kanallar", callback_data: "majburiyObuna" },
+        ],
+        // [],
+      ],
     },
   });
 
@@ -58,6 +66,8 @@ async function AdminPanel(bot, msg) {
           },
         });
         break;
+
+      //
 
       case "addAdmin":
         bot.deleteMessage(chatId, query.message.message_id);
@@ -125,6 +135,7 @@ async function AdminPanel(bot, msg) {
           }
         });
         break;
+      //
       case "removeAdmin":
         bot.deleteMessage(chatId, query.message.message_id);
         waitingForAdmin = chatId;
@@ -192,6 +203,218 @@ async function AdminPanel(bot, msg) {
           }
         });
         break;
+      //
+      case "addChanell":
+        bot.deleteMessage(chatId, query.message.message_id);
+        waitingForAdmin = chatId;
+        bot.sendMessage(
+          chatId,
+          "<b>ℹ️ /q_kanal sozidan song kanal usernamesini yuboring. </b>\n\nMasalan: /q_kanal @murodillayev_hojiakbar",
+          {
+            parse_mode: "HTML",
+            reply_markup: {
+              inline_keyboard: [
+                [
+                  {
+                    text: "🔙 Orqaga",
+                    callback_data: "showChannels",
+                  },
+                ],
+              ],
+            },
+          }
+        );
+
+        bot.onText(/\/q_kanal (@\w+)/, async (msg, match) => {
+          const responseId = msg.chat.id;
+
+          if (responseId === waitingForAdmin) {
+            const isAdmin =
+              (await Admin.findOne({ adminId: responseId })) !== null;
+
+            if (isAdmin) {
+              console.log("1");
+              const username = match[1]; // match[1] da foydalanuvchidan kelgan ID bo'ladi
+
+              try {
+                const botAdminThisChannel = await bot.getChatMember(
+                  username,
+                  process.env.TELEGRAM_BOT_TOKEN
+                );
+
+                if (botAdminThisChannel.status === "administrator") {
+                  console.log("Bot admin!");
+                  try {
+                    const existingChanell = await MajburiyKanal.findOne({
+                      username,
+                    });
+
+                    if (existingChanell) {
+                      bot.sendMessage(chatId, "Bu kanal allaqachon mavjud.");
+                      waitingForAdmin = null;
+                    } else {
+                      const chatInfo = await bot.getChat(username); // Kanal haqida ma'lumot olish
+
+                      const newChannel = new MajburiyKanal({
+                        username,
+                        id: chatInfo.id,
+                        name: chatInfo.title,
+                      });
+
+                      await newChannel.save();
+                      waitingForAdmin = null;
+
+                      bot.sendMessage(chatId, "Kanal muvofiqayatlik qoshildi.");
+                    }
+                  } catch (err) {
+                    bot.sendMessage(
+                      chatId,
+                      "Xatolik yuz berdi, Kanal qoshilmadi."
+                    );
+                    console.error(err);
+                  }
+                } else {
+                  console.log("Bot admin emas");
+                  bot.sendMessage(chatId, "Botni kanalga admin qiling!");
+                }
+              } catch (err) {
+                if (err.response && err.response.statusCode === 400) {
+                  console.log("Botni kanalga admin qiling!");
+                  console.log("Botni kanalga admin qiling!", err);
+                  bot.sendMessage(chatId, "Botni kanalga admin qiling!");
+                } else {
+                  console.error("Boshqa xatolik:", err);
+                  bot.sendMessage(
+                    chatId,
+                    "Xatolik yuz berdi, kanalni tekshirishda muammo bor."
+                  );
+                }
+              }
+            }
+          }
+        });
+        break;
+      //
+      case "RemoveChannel":
+        bot.deleteMessage(chatId, query.message.message_id);
+        waitingForAdmin = chatId;
+        bot.sendMessage(
+          chatId,
+          "<b>ℹ️ /r_kanal sozidan song kanal usernamesini yuboring. </b>\n\nMasalan: /r_kanal @murodillayev_hojiakbar",
+          {
+            parse_mode: "HTML",
+            reply_markup: {
+              inline_keyboard: [
+                [
+                  {
+                    text: "🔙 Orqaga",
+                    callback_data: "showChannels",
+                  },
+                ],
+              ],
+            },
+          }
+        );
+
+        bot.onText(/\/r_kanal (@\w+)/, async (msg, match) => {
+          const responseId = msg.chat.id;
+
+          if (responseId === waitingForAdmin) {
+            const isAdmin =
+              (await Admin.findOne({ adminId: responseId })) !== null;
+
+            if (isAdmin) {
+              const username = match[1]; // match[1] da foydalanuvchidan kelgan ID bo'ladi
+
+              try {
+                const existingChanell = await MajburiyKanal.findOne({
+                  username,
+                });
+
+                if (!existingChanell) {
+                  bot.sendMessage(chatId, "Bu kanal mavjud emas.");
+                  waitingForAdmin = null;
+                } else {
+                  const adminToRemove = await MajburiyKanal.findOneAndDelete({
+                    username,
+                  });
+
+                  if (adminToRemove) {
+                    bot.sendMessage(chatId, username + " kanali ochirildi");
+                  } else {
+                    bot.sendMessage(chatId, username + " Qandaydur xatolik!");
+                  }
+                  waitingForAdmin = null;
+                }
+              } catch (err) {
+                bot.sendMessage(
+                  chatId,
+                  "Xatolik yuz berdi, Kanal ochirilmadi."
+                );
+                console.error(err);
+              }
+            }
+          }
+        });
+        break;
+      //
+      case "showChannels":
+        bot.deleteMessage(chatId, query.message.message_id);
+
+        const channels = await MajburiyKanal.find(); // Barcha kanallarni olish
+        console.log(channels);
+
+        // Agar kanallar mavjud bo'lsa
+        if (channels.length > 0) {
+          // Kanallarni inline tugmalar orqali ko'rsatish
+          const inlineKeyboard = channels.map((channel) => {
+            return [
+              {
+                text: `${channel.name} - ID: ${channel.id}`,
+                url: `https://t.me/${channel.username.slice(1)}`,
+              },
+            ];
+          });
+
+          // Kanallarni foydalanuvchiga yuborish
+          bot.sendMessage(chatId, "*📋Kanallar ro'yxati:*", {
+            parse_mode: "Markdown",
+            reply_markup: {
+              inline_keyboard: inlineKeyboard,
+            },
+          });
+        } else {
+          bot.sendMessage(chatId, "Hech qanday kanal mavjud emas.");
+        }
+
+        break;
+
+      //
+      case "majburiyObuna":
+        bot.deleteMessage(chatId, query.message.message_id);
+        bot.sendMessage(chatId, "📢 Kanallar bo'limi !", {
+          parse_mode: "Markdown",
+          reply_markup: {
+            inline_keyboard: [
+              [{ text: "📋 Hozirgi kanallar", callback_data: "showChannels" }],
+              [
+                { text: "➕ Kanal Qo'shish", callback_data: "addChanell" },
+                {
+                  text: "➖ Kanal O'chirish",
+                  callback_data: "RemoveChannel",
+                },
+              ],
+              [
+                {
+                  text: "🔺 Bosh menuga",
+                  callback_data: "restartAdmin",
+                },
+              ],
+            ],
+          },
+        });
+        break;
+      //
 
       case "restartAdmin":
         bot.deleteMessage(chatId, query.message.message_id);
@@ -199,11 +422,15 @@ async function AdminPanel(bot, msg) {
           parse_mode: "Markdown",
           reply_markup: {
             inline_keyboard: [
-              [{ text: "📋 Adminlar", callback_data: "ShowAdmins" }],
+              [
+                { text: "📋 Adminlar", callback_data: "ShowAdmins" },
+                { text: "📢 Kanallar", callback_data: "majburiyObuna" },
+              ],
             ],
           },
         });
         break;
+      //
     }
   });
 }
