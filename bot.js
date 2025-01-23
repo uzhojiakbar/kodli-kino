@@ -70,10 +70,9 @@ bot.on("callback_query", async (query) => {
 
   if (query.data === "check_subscription") {
     if (await subscribeCheck(bot, chatId)) {
-      bot.sendMessage(
-        chatId,
-        "Rahmat! Siz endi botdan to'liq foydalanishingiz mumkin. /start"
-      );
+      bot.sendMessage(chatId, " <b>Tekshirishdik</b>✅. /start", {
+        parse_mode: "HTML",
+      });
     } else {
       bot.sendMessage(
         chatId,

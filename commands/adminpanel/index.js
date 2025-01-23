@@ -14,6 +14,7 @@ async function AdminPanel(bot, msg) {
     parse_mode: "Markdown",
     reply_markup: {
       inline_keyboard: [
+        [{ text: "🎬 Kino qo'shish", callback_data: "addFilm" }],
         [
           { text: "📋 Adminlar", callback_data: "ShowAdmins" },
           { text: "📢 Kanallar", callback_data: "majburiyObuna" },

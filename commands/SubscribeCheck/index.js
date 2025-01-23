@@ -25,7 +25,7 @@ async function subscribeCheck(bot, chatId) {
     else {
       const buttons = notSubscribedChannels.map((channel) => [
         {
-          text: `${channel.name}`,
+          text: `❌ ${channel.name}`,
           url: `https://t.me/${channel.username.slice(1)}`,
         },
       ]);
