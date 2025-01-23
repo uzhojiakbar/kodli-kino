@@ -2,20 +2,12 @@
 
 const MajburiyKanal = require("../../models/MajburiyKanal");
 
-const getAllChannels = async () => {
-  try {
-    const channels = await MajburiyKanal.find(); // Barcha ma'lumotlarni oladi
-    console.log(channels); // Ma'lumotlar array ko'rinishida bo'ladi
-  } catch (error) {
-    console.error("Ma'lumotlarni olishda xatolik:", error);
-  }
-};
-
 async function subscribeCheck(bot, chatId) {
   try {
     const notSubscribedChannels = [];
+    const getAllChannels = await MajburiyKanal.find(); // Barcha ma'lumotlarni oladi
 
-    for (const channel of await getAllChannels) {
+    for (const channel of getAllChannels) {
       const memberStatus = await bot.getChatMember(channel.username, chatId);
 
       if (
@@ -27,12 +19,13 @@ async function subscribeCheck(bot, chatId) {
 
     //
     //
+    console.log(notSubscribedChannels, getAllChannels);
 
     if (notSubscribedChannels.length === 0) return true;
     else {
       const buttons = notSubscribedChannels.map((channel) => [
         {
-          text: `➕ ${channel.Buttonname}`,
+          text: `${channel.name}`,
           url: `https://t.me/${channel.username.slice(1)}`,
         },
       ]);

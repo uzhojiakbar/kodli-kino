@@ -21,19 +21,41 @@ bot.on("message", async (msg) => {
   const chatId = msg.chat.id;
 
   const subscribed = await subscribeCheck(bot, chatId);
+  console.log(subscribed);
 
   // const isAdmin = true;
 
   const isAdmin =
     (await AdminModel.findOne({ adminId: chatId.toString() })) !== null;
 
-  if (isAdmin) {
-    await AdminPanel(bot, msg);
+  if (!subscribed) {
   } else {
-    await bot.sendMessage(chatId, "SIZNING IDYINGIZ: " + chatId);
+    if (isAdmin) {
+      await AdminPanel(bot, msg);
+    } else {
+      await bot.sendMessage(chatId, "SIZNING IDYINGIZ: " + chatId);
+    }
   }
 
   console.log(chatId);
+});
+
+bot.on("callback_query", async (query) => {
+  const chatId = query.message.chat.id;
+
+  if (query.data === "check_subscription") {
+    if (await subscribeCheck(bot, chatId)) {
+      bot.sendMessage(
+        chatId,
+        "Rahmat! Siz endi botdan to'liq foydalanishingiz mumkin. /start"
+      );
+    } else {
+      bot.sendMessage(
+        chatId,
+        "Siz hali hamma kanallarga a'zo bo'lmagansiz. Iltimos, barcha kanallarga a'zo bo'ling va yana tekshiring."
+      );
+    }
+  }
 });
 
 // bot.
