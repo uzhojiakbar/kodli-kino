@@ -21,8 +21,6 @@ mongoose
 
 // BEGIN
 
-require("dotenv").config();
-
 let callbackIds = {};
 let waitingForAdmin = null; // Adminni kutish holati
 
