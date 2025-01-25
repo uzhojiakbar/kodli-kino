@@ -33,3 +33,25 @@
 
 // // Misol: adminni o'chirish
 // deleteAdmin("7935730795.0");
+
+=========================================
+
+
+db.all(`SELECT * FROM users`, (err, rows) => {
+if (err) {
+    console.error("users olishda xatolik:", err.message);
+} else {
+    console.log("users:", rows);
+}
+});
+
+=========================================
+
+
+db.all(`SELECT * FROM admins`, (err, rows) => {
+if (err) {
+    console.error("admins olishda xatolik:", err.message);
+} else {
+    console.log("admins:", rows);
+}
+});
