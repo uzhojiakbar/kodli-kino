@@ -1,15 +1,16 @@
-const sqlite3 = require("sqlite3").verbose();
-
 async function subscribeCheck(bot, chatId, db) {
-  try {
+  return new Promise((resolve, reject) => {
     const notSubscribedChannels = [];
 
     // Barcha kanallarni olish
-    db.all("SELECT * FROM MajburiyKanal", [], async (err, rows) => {
+    db.all("SELECT * FROM MajburiyKanal", async (err, rows) => {
       if (err) {
         console.error("Kanallarni olishda xatolik:", err.message);
+        reject(err);
         return;
       }
+
+      console.log(rows);
 
       for (const channel of rows) {
         try {
@@ -34,7 +35,7 @@ async function subscribeCheck(bot, chatId, db) {
       }
 
       if (notSubscribedChannels.length === 0) {
-        return true;
+        resolve(true); // Foydalanuvchi obuna bo'lgan
       } else {
         const buttons = notSubscribedChannels.map((channel) => [
           {
@@ -58,14 +59,10 @@ async function subscribeCheck(bot, chatId, db) {
           }
         );
 
-        return false;
+        resolve(false); // Foydalanuvchi obuna bo'lmagan
       }
     });
-  } catch (error) {
-    console.error("subscribeCheck funksiyasida xatolik:", error.message);
-  }
-
-  return true;
+  });
 }
 
 module.exports = { subscribeCheck };

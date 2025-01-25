@@ -104,8 +104,12 @@ const addUserIfNotExists = async (userId) => {
     }
   );
 };
+const sendFilmByCode = (chatId, userInput, subscribed) => {
+  if (!subscribed) {
+    bot.sendMessage(chatId, "Obuna bo'lishingiz kerak.");
+    return;
+  }
 
-const sendFilmByCode = (chatId, userInput) => {
   db.get(`SELECT * FROM films WHERE code = ?`, [userInput], (err, film) => {
     if (err) {
       console.error("Filmni tekshirishda xatolik:", err.message);
@@ -129,70 +133,68 @@ const sendFilmByCode = (chatId, userInput) => {
 };
 
 // Xabarlarni qayta ishlash
-bot.on("message", (msg) => {
+bot.on("message", async (msg) => {
   const chatId = msg.chat.id;
   const userInput = msg.text;
 
   addUserIfNotExists(chatId);
 
-  subscribeCheck(bot, chatId, db).then((subscribed) => {
-    db.get(
-      `SELECT * FROM admins WHERE adminId = ?`,
-      [chatId.toString()],
-      (err, isAdmin) => {
-        if (err) {
-          console.error("Adminni tekshirishda xatolik:", err.message);
-          return;
-        }
+  const subscribed = await subscribeCheck(bot, chatId, db);
 
-        const isAdminId = isAdmin?.adminId == chatId;
+  // Agar foydalanuvchi obuna bo'lmasa, faqatgina xabar yuboring
+  if (!subscribed) {
+    console.log("Foydalanuvchi obuna bo'lmagan");
+    return; // Agar obuna bo'lmasa, boshqa ishlarni bajarishga o'tmang
+  }
 
-        if (!subscribed) {
-          // Obuna bo`lmasa
-          bot.sendMessage(chatId, "<b>Obunani tasdiqlang!</b>", {
-            parse_mode: "HTML",
-          });
-          return;
-        }
+  db.get(
+    `SELECT * FROM admins WHERE adminId = ?`,
+    [chatId.toString()],
+    (err, isAdmin) => {
+      if (err) {
+        console.error("Adminni tekshirishda xatolik:", err.message);
+        return;
+      }
 
-        if (isAdminId) {
-          if (/^\d+$/.test(userInput)) {
-            sendFilmByCode(chatId, userInput);
-          } else {
-            bot.sendMessage(chatId, "🛠️ Admin panelga xush kelibsiz!", {
-              parse_mode: "Markdown",
-              reply_markup: {
-                inline_keyboard: [
-                  [{ text: "🎬 Kino", callback_data: "Film" }],
-                  [
-                    { text: "📋 Adminlar", callback_data: "ShowAdmins" },
-                    { text: "📢 Kanallar", callback_data: "majburiyObuna" },
-                  ],
-                  [
-                    { text: "📊 Statistika", callback_data: "stat" },
-                    {
-                      text: "✉️ Habar yuborish",
-                      callback_data: "send_broadcast",
-                    },
-                  ],
-                ],
-              },
-            });
-          }
+      const isAdminId = isAdmin?.adminId == chatId;
+
+      if (isAdminId) {
+        if (/^\d+$/.test(userInput)) {
+          sendFilmByCode(chatId, userInput, subscribed);
         } else {
-          if (/^\d+$/.test(userInput)) {
-            sendFilmByCode(chatId, userInput);
-          } else {
-            bot.sendMessage(
-              chatId,
-              "<b>Assalamu aleykum! \n\n✍🏻 Kino kodini yuboring...</b>",
-              { parse_mode: "HTML" }
-            );
-          }
+          bot.sendMessage(chatId, "🛠️ Admin panelga xush kelibsiz!", {
+            parse_mode: "Markdown",
+            reply_markup: {
+              inline_keyboard: [
+                [{ text: "🎬 Kino", callback_data: "Film" }],
+                [
+                  { text: "📋 Adminlar", callback_data: "ShowAdmins" },
+                  { text: "📢 Kanallar", callback_data: "majburiyObuna" },
+                ],
+                [
+                  { text: "📊 Statistika", callback_data: "stat" },
+                  {
+                    text: "✉️ Habar yuborish",
+                    callback_data: "send_broadcast",
+                  },
+                ],
+              ],
+            },
+          });
+        }
+      } else {
+        if (/^\d+$/.test(userInput)) {
+          sendFilmByCode(chatId, userInput, subscribed);
+        } else {
+          bot.sendMessage(
+            chatId,
+            "<b>Assalamu aleykum! \n\n✍🏻 Kino kodini yuboring...</b>",
+            { parse_mode: "HTML" }
+          );
         }
       }
-    );
-  });
+    }
+  );
 });
 
 bot.on("callback_query", async (query) => {
@@ -463,6 +465,204 @@ bot.on("callback_query", async (query) => {
                       }
                     }
                   );
+                }
+              }
+            }
+          });
+          break;
+        // Majburiy obuna uchun kanal qo'shish
+        case "majburiyObuna":
+          bot.deleteMessage(chatId, query.message.message_id);
+          bot.sendMessage(chatId, "📢 Kanallar bo'limi !", {
+            parse_mode: "Markdown",
+            reply_markup: {
+              inline_keyboard: [
+                [
+                  {
+                    text: "📋 Hozirgi kanallar",
+                    callback_data: "showChannels",
+                  },
+                ],
+                [
+                  { text: "➕ Kanal Qo'shish", callback_data: "addChanell" },
+                  {
+                    text: "➖ Kanal O'chirish",
+                    callback_data: "RemoveChannel",
+                  },
+                ],
+                [
+                  {
+                    text: "🔺 Bosh menuga",
+                    callback_data: "restartAdmin",
+                  },
+                ],
+              ],
+            },
+          });
+          break;
+        //
+        //
+        case "showChannels":
+          bot.deleteMessage(chatId, query.message.message_id);
+
+          db.all(`SELECT * FROM MajburiyKanal`, (err, channels) => {
+            if (err) {
+              console.error("MajburiyKanal olishda xatolik:", err.message);
+            } else {
+              console.log(channels);
+              if (channels.length > 0) {
+                // Kanallarni inline tugmalar orqali ko'rsatish
+                const inlineKeyboard = channels.map((channel) => {
+                  return [
+                    {
+                      text: `${channel.name} - ID: ${channel.id}`,
+                      url: `https://t.me/${channel.username.slice(1)}`,
+                    },
+                  ];
+                });
+
+                // Kanallarni foydalanuvchiga yuborish
+                bot.sendMessage(chatId, "*📋Kanallar ro'yxati:*", {
+                  parse_mode: "Markdown",
+                  reply_markup: {
+                    inline_keyboard: [
+                      ...inlineKeyboard,
+                      [
+                        {
+                          text: "🔙 Orqaga",
+                          callback_data: "majburiyObuna",
+                        },
+                      ],
+                    ],
+                  },
+                });
+              } else {
+                bot.sendMessage(chatId, "*📦 Hech qanday kanal mavjud emas.*", {
+                  parse_mode: "Markdown",
+                  reply_markup: {
+                    inline_keyboard: [
+                      [
+                        {
+                          text: "🔙 Orqaga",
+                          callback_data: "majburiyObuna",
+                        },
+                      ],
+                    ],
+                  },
+                });
+              }
+            }
+          });
+
+          // Agar kanallar mavjud bo'lsa
+
+          break;
+        //
+        //
+        case "addChanell":
+          bot.deleteMessage(chatId, query.message.message_id);
+          waitingForAdmin = chatId;
+          bot.sendMessage(
+            chatId,
+            "<b>ℹ️ /q_kanal sozidan song kanal usernamesini yuboring. </b>\n\nMasalan: /q_kanal @murodillayev_hojiakbar",
+            {
+              parse_mode: "HTML",
+              reply_markup: {
+                inline_keyboard: [
+                  [
+                    {
+                      text: "🔙 Orqaga",
+                      callback_data: "majburiyObuna",
+                    },
+                  ],
+                ],
+              },
+            }
+          );
+
+          bot.onText(/\/q_kanal (@\w+)/, async (msg, match) => {
+            const responseId = msg.chat.id;
+
+            if (responseId === waitingForAdmin) {
+              if (isAdmin) {
+                const username = match[1]; // match[1] da foydalanuvchidan kelgan ID bo'ladi
+
+                try {
+                  // MajburiyKanal jadvalidan barcha kanallarni olish
+                  db.all(
+                    `SELECT * FROM MajburiyKanal`,
+                    [],
+                    async (err, channels) => {
+                      if (err) {
+                        console.error(
+                          "Kanallarni olishda tekshirishda xatolik:",
+                          err.message
+                        );
+                        bot.sendMessage(chatId, "Kanallarni olishda xatolik!");
+                      } else {
+                        console.log(channels); // Barcha kanallarni konsolda ko'rsatish
+                        const botAdminThisChannel = await bot.getChatMember(
+                          username,
+                          process.env.TELEGRAM_BOT_TOKEN
+                        );
+
+                        console.log(botAdminThisChannel);
+
+                        if (botAdminThisChannel.status === "administrator") {
+                          // Kanalni bazaga qo'shish
+                          try {
+                            const chatInfo = await bot.getChat(username); // Asinxron ishni kutish kerak
+                            db.run(
+                              `INSERT INTO MajburiyKanal (username, id, name) VALUES (?, ?, ?)`,
+                              [
+                                String(username),
+                                String(chatInfo.id),
+                                String(chatInfo.title),
+                              ],
+                              (err) => {
+                                if (err) {
+                                  console.error(
+                                    "Kanal qoshishda xatolik:",
+                                    err.message
+                                  );
+                                  bot.sendMessage(
+                                    chatId,
+                                    "Kanal qoshishda xatolik"
+                                  );
+                                } else {
+                                  bot.sendMessage(
+                                    chatId,
+                                    "Kanal muvofiqiyatlik qoshildi."
+                                  );
+                                  console.log("Kanal Qoshildi");
+                                }
+                              }
+                            );
+                          } catch (err) {
+                            bot.sendMessage(chatId, "Kanalni olishda xatolik!");
+                            console.error(err);
+                          }
+                        } else {
+                          bot.sendMessage(
+                            chatId,
+                            "Botni kanalga admin qiling!"
+                          );
+                        }
+                      }
+                    }
+                  );
+                } catch (err) {
+                  if (err.response && err.response.statusCode === 400) {
+                    console.log("Botni kanalga admin qiling!");
+                    console.log("Botni kanalga admin qiling!", err);
+                    bot.sendMessage(chatId, "Botni kanalga admin qiling!");
+                  } else {
+                    console.error("Boshqa xatolik:", err);
+                    bot.sendMessage(
+                      chatId,
+                      "Xatolik yuz berdi, kanalni tekshirishda muammo bor."
+                    );
+                  }
                 }
               }
             }
