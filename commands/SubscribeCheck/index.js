@@ -11,8 +11,6 @@ async function subscribeCheck(bot, chatId, db) {
         return;
       }
 
-      console.log(rows);
-
       for (const channel of rows) {
         try {
           const memberStatus = await bot.getChatMember(
