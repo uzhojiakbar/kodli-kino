@@ -188,8 +188,24 @@ bot.on("message", async (msg) => {
         } else {
           bot.sendMessage(
             chatId,
-            "<b>Assalamu aleykum! \n\n✍🏻 Kino kodini yuboring...</b>",
-            { parse_mode: "HTML" }
+            "**🎬 Kino qidirish**\n\n" +
+              "🔍 **Kino kodini kiriting**:\n" +
+              "📝 *Masalan: 12345* \n\n" +
+              "❗️ Kodni aniq kiriting, har bir kino uchun alohida kod mavjud. " +
+              "\n\n🌟 *Filmni qidirishda yordam kerakmi?* Bizga yozing!",
+            {
+              parse_mode: "Markdown",
+              reply_markup: {
+                inline_keyboard: [
+                  [
+                    {
+                      text: "🔙 Orqaga",
+                      callback_data: "restartAdmin",
+                    },
+                  ],
+                ],
+              },
+            }
           );
         }
       }
@@ -227,7 +243,7 @@ bot.on("callback_query", async (query) => {
   db.get(
     `SELECT * FROM admins WHERE adminId = ?`,
     [chatId.toString()],
-    (err, isAdmin) => {
+    async (err, isAdmin) => {
       if (err) {
         console.error("Adminni tekshirishda xatolik:", err.message);
         return;
@@ -604,7 +620,6 @@ bot.on("callback_query", async (query) => {
 
           break;
         //
-        //
         case "addChanell":
           bot.deleteMessage(chatId, query.message.message_id);
           waitingForAdmin = chatId;
@@ -806,7 +821,548 @@ bot.on("callback_query", async (query) => {
             }
           });
           break;
+        //
+        case "stat":
+          bot.deleteMessage(chatId, query.message.message_id);
 
+          // Foydalanuvchilarni sanash uchun funksiyalar
+          const countUsersToday = async () => {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); // Bugungi kunning boshlanishi (soat 00:00)
+
+            return new Promise((resolve, reject) => {
+              db.get(
+                `SELECT COUNT(*) AS count FROM users WHERE joinedAt >= ?`,
+                [today.toISOString()],
+                (err, row) => {
+                  if (err) {
+                    reject(err);
+                  } else {
+                    resolve(row.count);
+                  }
+                }
+              );
+            });
+          };
+
+          const countUsersThisWeek = async () => {
+            const startOfWeek = new Date();
+            startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay()); // Haftaning birinchi kuni
+
+            return new Promise((resolve, reject) => {
+              db.get(
+                `SELECT COUNT(*) AS count FROM users WHERE joinedAt >= ?`,
+                [startOfWeek.toISOString()],
+                (err, row) => {
+                  if (err) {
+                    reject(err);
+                  } else {
+                    resolve(row.count);
+                  }
+                }
+              );
+            });
+          };
+
+          const countUsersThisMonth = async () => {
+            const startOfMonth = new Date();
+            startOfMonth.setDate(1); // Oyning birinchi kuni
+
+            return new Promise((resolve, reject) => {
+              db.get(
+                `SELECT COUNT(*) AS count FROM users WHERE joinedAt >= ?`,
+                [startOfMonth.toISOString()],
+                (err, row) => {
+                  if (err) {
+                    reject(err);
+                  } else {
+                    resolve(row.count);
+                  }
+                }
+              );
+            });
+          };
+
+          const countUsersThisYear = async () => {
+            const startOfYear = new Date();
+            startOfYear.setMonth(0, 1); // Yilning birinchi kuni (1-yanvar)
+
+            return new Promise((resolve, reject) => {
+              db.get(
+                `SELECT COUNT(*) AS count FROM users WHERE joinedAt >= ?`,
+                [startOfYear.toISOString()],
+                (err, row) => {
+                  if (err) {
+                    reject(err);
+                  } else {
+                    resolve(row.count);
+                  }
+                }
+              );
+            });
+          };
+
+          // Umumiy obunachilar soni
+          const countTotalUsers = async () => {
+            return new Promise((resolve, reject) => {
+              db.get(`SELECT COUNT(*) AS count FROM users`, (err, row) => {
+                if (err) {
+                  reject(err);
+                } else {
+                  resolve(row.count);
+                }
+              });
+            });
+          };
+
+          // Kinolar sonini hisoblash
+          const countTotalFilms = async () => {
+            return new Promise((resolve, reject) => {
+              db.get(`SELECT COUNT(*) AS count FROM films`, (err, row) => {
+                if (err) {
+                  reject(err);
+                } else {
+                  resolve(row.count);
+                }
+              });
+            });
+          };
+
+          // Statistikalarni olish
+          try {
+            const today = await countUsersToday();
+            const thisWeek = await countUsersThisWeek();
+            const thisMonth = await countUsersThisMonth();
+            const thisYear = await countUsersThisYear();
+            const totalUsers = await countTotalUsers(); // To'liq foydalanuvchilar soni
+            const totalFilms = await countTotalFilms(); // To'liq kinolar soni
+
+            // Xabarni tayyorlash
+            const message =
+              `🎉 <b>📊 Bot statistikasi:</b>\n\n` +
+              `👥 <b>Foydalanuvchilar:</b>\n` +
+              `  - 📅 <b>Bugun</b>: <code>${today}</code> ta yangi foydalanuvchi qo'shildi!` +
+              `\n` +
+              `  - 🗓️ <b>Bu hafta</b>: <code>${thisWeek}</code> ta yangi foydalanuvchi qo'shildi!` +
+              `\n` +
+              `  - 📆 <b>Bu oy</b>: <code>${thisMonth}</code> ta yangi foydalanuvchi qo'shildi!` +
+              `\n` +
+              `  - 🏆 <b>Bu yilda</b>: <code>${thisYear}</code> ta yangi foydalanuvchi qo'shildi!` +
+              `\n\n` +
+              `🎬 <b>Kino statistikasi:</b>\n` +
+              `  - 🎥 <b>Jami kinolar</b>: <code>${totalFilms}</code> ta film mavjud.` +
+              `\n\n` +
+              `📊 <b>Jami foydalanuvchilar soni:</b> <code>${totalUsers}</code> ta.` +
+              `\n\n` +
+              `🌟 <i>Botning rivojlanishi tez va barqaror davom etmoqda!</i>`;
+
+            // Xabarni yuborish
+            bot.sendMessage(chatId, message, {
+              parse_mode: "HTML",
+              reply_markup: {
+                inline_keyboard: [
+                  [
+                    {
+                      text: "🔺 Bosh menuga",
+                      callback_data: "restartAdmin",
+                    },
+                  ],
+                ],
+              },
+            });
+          } catch (err) {
+            console.error("Xatolik statistikani olishda:", err.message);
+            bot.sendMessage(chatId, "Statistikani olishda xatolik yuz berdi.");
+          }
+
+          break;
+
+        //
+        case "Film":
+          if (query.message.message_id) {
+            bot.deleteMessage(chatId, query.message.message_id);
+          }
+
+          bot.sendMessage(chatId, "🎬 Kinolarni boshqarish", {
+            parse_mode: "Markdown",
+            reply_markup: {
+              inline_keyboard: [
+                [
+                  {
+                    text: "🔎 Kod bo'yicha Qidirish",
+                    callback_data: "searchFilm",
+                  },
+                ],
+                [
+                  { text: "🎬 Kino qo'shish", callback_data: "addFilm" },
+                  { text: "❌ Kino o'chirish", callback_data: "deleteFilm" },
+                ],
+                [
+                  {
+                    text: "🔙 Orqaga",
+                    callback_data: "restartAdmin",
+                  },
+                ],
+              ],
+            },
+          });
+
+          break;
+        //
+        case "addFilm":
+          if (query.message.message_id) {
+            bot.deleteMessage(chatId, query.message.message_id);
+          }
+
+          bot.sendMessage(chatId, "🎥 Kino yuklash uchun videoni yuboring:");
+
+          // Videoni kutib olish
+          bot.once("video", async (msg) => {
+            const videoFileId = msg.video.file_id;
+            const targetChannel = -1002445594841; // Kanal ID
+
+            try {
+              // Oxirgi kino kodini olish
+              db.get("SELECT MAX(code) AS maxCode FROM films", (err, row) => {
+                if (err) {
+                  console.error("Xatolik:", err);
+                  bot.sendMessage(
+                    chatId,
+                    "❌ Kino qo'shishda xatolik yuz berdi!"
+                  );
+                  return;
+                }
+
+                const newCode = row.maxCode ? row.maxCode + 1 : 1; // Agar kino bo'lmasa, 1 dan boshlanadi
+
+                // Videoni kanalga yuborish
+                bot
+                  .sendVideo(targetChannel, videoFileId, {
+                    parse_mode: "Markdown",
+                    caption: `*Kino kodi:* \`${newCode}\`\n\n*Eng sara tarjima kinolar va seriallar faqat bizda 🍿\n🤖Bizning bot: @KinoDownload_Robot*`,
+                  })
+                  .then((sentMessage) => {
+                    const postId = sentMessage.message_id;
+
+                    // Yangi filmni bazaga qo'shish
+                    db.run(
+                      `INSERT INTO films (code, postId, videoHash, count) VALUES (?, ?, ?, ?)`,
+                      [newCode, postId, videoFileId, 0],
+                      function (err) {
+                        if (err) {
+                          console.error("Xatolik:", err);
+                          bot.sendMessage(
+                            chatId,
+                            "❌ Kino qo'shishda xatolik yuz berdi!"
+                          );
+                          return;
+                        }
+
+                        // Kino ma'lumotlarini yuborish
+                        bot.sendVideo(chatId, videoFileId, {
+                          parse_mode: "Markdown",
+                          caption: `*Kino kodi:* \`${newCode}\`\n\n*Eng sara tarjima kinolar va seriallar faqat bizda 🍿\n🤖Bizning bot: @KinoDownload_Robot*`,
+                        });
+
+                        bot.sendMessage(
+                          chatId,
+                          `✅ Kino muvaffaqiyatli yuklandi va kanalga joylandi! (Kino kodi: ${newCode})`
+                        );
+                      }
+                    );
+                  })
+                  .catch((error) => {
+                    console.error("Xatolik:", error);
+                    bot.sendMessage(
+                      chatId,
+                      "❌ Video yuklashda xatolik yuz berdi!"
+                    );
+                  });
+              });
+            } catch (error) {
+              console.log("Kino yuklashda xatolik!", error);
+              bot.sendMessage(chatId, "❌ Video yuklashda xatolik yuz berdi!");
+            }
+          });
+
+          break;
+        //
+        case "deleteFilm":
+          bot.sendMessage(
+            chatId,
+            "🎬 **Kinoni o'chirish jarayonini boshlaymiz!**\n\n" +
+              "Iltimos, **o'chirmoqchi bo'lgan kinoning kodini** kiriting:\n\n" +
+              "🔑 *Masalan:* `/delFilm 1`\n\n" +
+              "📝 *Kodni to'g'ri kiriting, har bir kino uchun alohida kod mavjud!*",
+            {
+              parse_mode: "Markdown",
+              reply_markup: {
+                inline_keyboard: [
+                  [
+                    {
+                      text: "🔙 Orqaga",
+                      callback_data: "restartAdmin",
+                    },
+                  ],
+                ],
+              },
+            }
+          );
+          bot.onText(/\/delFilm (\d+)/, (msg, match) => {
+            const chatId = msg.chat.id;
+            const codeToDelete = parseInt(match[1]); // "delFilm <code>" formatida bo'lsa, code olish
+
+            if (isNaN(codeToDelete)) {
+              bot.sendMessage(
+                chatId,
+                "❌ Iltimos, to'g'ri kod kiriting: /delFilm <kod>"
+              );
+              return;
+            }
+
+            // Filmni bazadan topish va o'chirish
+            db.get(
+              "SELECT * FROM films WHERE code = ?",
+              [codeToDelete],
+              (err, row) => {
+                if (err) {
+                  console.log("Xatolik:", err);
+                  bot.sendMessage(
+                    chatId,
+                    "❌ Kino o'chirishda xatolik yuz berdi!"
+                  );
+                  return;
+                }
+
+                if (!row) {
+                  bot.sendMessage(
+                    chatId,
+                    `❌ Kodga mos film topilmadi. (Kod: ${codeToDelete})`
+                  );
+                  return;
+                }
+
+                // Filmni o'chirish
+                db.run(
+                  "DELETE FROM films WHERE code = ?",
+                  [codeToDelete],
+                  (err) => {
+                    if (err) {
+                      console.log("Xatolik:", err);
+                      bot.sendMessage(
+                        chatId,
+                        "❌ Kino o'chirishda xatolik yuz berdi!"
+                      );
+                      return;
+                    }
+
+                    bot.sendMessage(
+                      chatId,
+                      `✅ Kodga mos film muvaffaqiyatli o'chirildi! (Kod: ${codeToDelete})`
+                    );
+                  }
+                );
+              }
+            );
+          });
+
+          break;
+        case "searchFilm":
+          bot.sendMessage(
+            chatId,
+            "**🎬 Kino qidirish**\n\n" +
+              "🔍 **Kino kodini kiriting**:\n" +
+              "📝 *Masalan: 12345* \n\n" +
+              "❗️ Kodni aniq kiriting, har bir kino uchun alohida kod mavjud. " +
+              "\n\n🌟 *Filmni qidirishda yordam kerakmi?* Bizga yozing!",
+            {
+              parse_mode: "Markdown",
+              reply_markup: {
+                inline_keyboard: [
+                  [
+                    {
+                      text: "🔙 Orqaga",
+                      callback_data: "restartAdmin",
+                    },
+                  ],
+                ],
+              },
+            }
+          );
+          break;
+        //
+        case "send_broadcast":
+          broadcast_mode = true;
+          bot.sendMessage(
+            chatId,
+            "📢 *Yuborish uchun variantni tanlang*:\n\n" +
+              "1️⃣ *Oddiy xabar yuborish*\n" +
+              "2️⃣ *Forward xabar yuborish*",
+            {
+              parse_mode: "Markdown",
+              reply_markup: {
+                inline_keyboard: [
+                  [
+                    {
+                      text: "🔵 Oddiy habar yuborish",
+                      callback_data: "broadcast_normal",
+                    },
+                  ],
+                  [
+                    {
+                      text: "🔁 Forward habar yuborish",
+                      callback_data: "broadcast_forward",
+                    },
+                  ],
+                ],
+              },
+            }
+          );
+
+          bot.once("callback_query", (broadcastTypeQuery) => {
+            const type = broadcastTypeQuery.data;
+            bot.answerCallbackQuery(broadcastTypeQuery.id);
+
+            bot.sendMessage(chatId, "📩 Endi xabaringizni yuboring:", {
+              parse_mode: "Markdown",
+              reply_markup: {
+                inline_keyboard: [
+                  [
+                    {
+                      text: "❌ Bekor qilish",
+                      callback_data: "cancel_broadcast",
+                    },
+                  ],
+                ],
+              },
+            });
+
+            bot.once("callback_query", async (query2) => {
+              await bot.answerCallbackQuery(query2.id);
+
+              if (query2.data === "cancel_broadcast") {
+                broadcast_mode = false;
+
+                bot.sendMessage(chatId, "*❌ Habar yuborish bekor qilindi!*", {
+                  parse_mode: "Markdown",
+                  reply_markup: {
+                    inline_keyboard: [
+                      [
+                        {
+                          text: "🔙 Orqaga qaytish",
+                          callback_data: "restartAdmin",
+                        },
+                      ],
+                    ],
+                  },
+                });
+
+                bot.deleteMessage(chatId, query2.message.message_id);
+                bot.deleteMessage(
+                  chatId,
+                  broadcastTypeQuery.message.message_id
+                );
+              }
+            });
+
+            bot.on("message", async (broadcastMsg) => {
+              // Foydalanuvchilarning telegram IDlarini olish
+              db.all("SELECT * FROM users", (err, allUsers) => {
+                if (err) {
+                  console.error("Userlarni olishda xatolik:", err.message);
+                } else {
+                  console.log("Userlar:", allUsers);
+                  console.log(allUsers);
+
+                  console.log("All Users: ", allUsers);
+
+                  if (broadcast_mode && isAdmin) {
+                    broadcast_mode = false;
+
+                    // Xabar yuborish
+                    allUsers.forEach(async (user) => {
+                      try {
+                        const userId = user.userId;
+
+                        if (type === "broadcast_normal") {
+                          // Media yoki oddiy xabarni aniqlash
+                          if (broadcastMsg.photo) {
+                            await bot.sendPhoto(
+                              userId,
+                              broadcastMsg.photo[0].file_id,
+                              {
+                                caption: broadcastMsg.caption || "",
+                                parse_mode: "HTML",
+                              }
+                            );
+                          } else if (broadcastMsg.video) {
+                            await bot.sendVideo(
+                              userId,
+                              broadcastMsg.video.file_id,
+                              {
+                                caption: broadcastMsg.caption || "",
+                                parse_mode: "HTML",
+                              }
+                            );
+                          } else if (broadcastMsg.audio) {
+                            await bot.sendAudio(
+                              userId,
+                              broadcastMsg.audio.file_id,
+                              {
+                                caption: broadcastMsg.caption || "",
+                                parse_mode: "HTML",
+                              }
+                            );
+                          } else if (broadcastMsg.document) {
+                            await bot.sendDocument(
+                              userId,
+                              broadcastMsg.document.file_id,
+                              {
+                                caption: broadcastMsg.caption || "",
+                                parse_mode: "HTML",
+                              }
+                            );
+                          } else {
+                            await bot.sendMessage(
+                              userId,
+                              broadcastMsg.text || "",
+                              {
+                                parse_mode: "HTML",
+                              }
+                            );
+                          }
+                        } else if (type === "broadcast_forward") {
+                          await bot.forwardMessage(
+                            userId,
+                            chatId,
+                            broadcastMsg.message_id
+                          );
+                        }
+                      } catch (error) {
+                        console.error(
+                          `Xatolik: ${user.userId} ga xabar yuborishda muammo!`
+                        );
+                      }
+                    });
+
+                    bot.sendMessage(
+                      chatId,
+                      "✅ Xabar barcha foydalanuvchilarga muvaffaqiyatli yuborildi!",
+                      {
+                        parse_mode: "HTML",
+                      }
+                    );
+                  }
+                }
+              });
+            });
+          });
+
+          bot.deleteMessage(chatId, query.message.message_id);
+
+          break;
+
+        //
         case "restartAdmin":
           bot.deleteMessage(chatId, query.message.message_id);
           bot.sendMessage(chatId, "🛠️ Admin panelga xush kelibsiz!", {

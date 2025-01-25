@@ -2206,3 +2206,106 @@ switch (query.data) {
 
     break;
 }
+
+// case "deleteFilm":
+//           bot.sendMessage(
+//             chatId,
+//             "🎬 **Kinoni o'chirish jarayonini boshlaymiz!**\n\n" +
+//               "Iltimos, **o'chirmoqchi bo'lgan kinoning kodini** kiriting:\n\n" +
+//               "🔑 *Masalan:* `/delFilm 1`\n\n" +
+//               "📝 *Kodni to'g'ri kiriting, har bir kino uchun alohida kod mavjud!*",
+//             {
+//               parse_mode: "Markdown",
+//               reply_markup: {
+//                 inline_keyboard: [
+//                   [
+//                     {
+//                       text: "🔙 Orqaga",
+//                       callback_data: "restartAdmin",
+//                     },
+//                   ],
+//                 ],
+//               },
+//             }
+//           );
+
+//           bot.onText(/\/delFilm (\d+)/, (msg, match) => {
+//             const chatId = msg.chat.id;
+//             const codeToDelete = parseInt(match[1]); // "delFilm <code>" formatida bo'lsa, code olish
+
+//             if (isNaN(codeToDelete)) {
+//               bot.sendMessage(
+//                 chatId,
+//                 "❌ **Xatolik!** Iltimos, **to'g'ri kodni** kiriting. Masalan: `/delFilm 1`",
+//                 {
+//                   parse_mode: "Markdown",
+//                 }
+//               );
+//               return;
+//             }
+
+//             // Filmni bazadan topish va o'chirish
+//             db.get(
+//               "SELECT * FROM films WHERE code = ?",
+//               [codeToDelete],
+//               (err, row) => {
+//                 if (err) {
+//                   console.log("Xatolik:", err);
+//                   bot.sendMessage(
+//                     chatId,
+//                     "❌ **Xatolik yuz berdi!** Kino o'chirilishda muammo.",
+//                     {
+//                       parse_mode: "Markdown",
+//                     }
+//                   );
+//                   return;
+//                 }
+
+//                 if (!row) {
+//                   bot.sendMessage(
+//                     chatId,
+//                     `❌ **Kodga mos film topilmadi!** (Kod: ${codeToDelete})`,
+//                     {
+//                       parse_mode: "Markdown",
+//                     }
+//                   );
+//                   return;
+//                 }
+
+//                 // Filmni o'chirish
+//                 db.run(
+//                   "DELETE FROM films WHERE code = ?",
+//                   [codeToDelete],
+//                   (err) => {
+//                     if (err) {
+//                       console.log("Xatolik:", err);
+//                       bot.sendMessage(
+//                         chatId,
+//                         "❌ **Xatolik yuz berdi!** Kino o'chirilishda muammo.",
+//                         {
+//                           parse_mode: "Markdown",
+//                         }
+//                       );
+//                       return;
+//                     }
+
+//                     bot.sendMessage(
+//                       chatId,
+//                       `✅ **Kino muvaffaqiyatli o'chirildi!** (Kod: ${codeToDelete})`,
+//                       {
+//                         parse_mode: "Markdown",
+//                       }
+//                     );
+
+//                     // Sticker yuborish
+//                     bot.sendSticker(
+//                       chatId,
+//                       "CAACAgIAAxkBAAENoRdnlGclwrpPP6bMh860cgO1tGWRPgACa0MAAtqW8Uu0DQMY1Us5VzYE"
+//                     );
+//                   }
+//                 );
+//               }
+//             );
+//           });
+
+//           break;
