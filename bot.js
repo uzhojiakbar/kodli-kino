@@ -195,16 +195,6 @@ bot.on("message", async (msg) => {
               "\n\n🌟 *Filmni qidirishda yordam kerakmi?* Bizga yozing!",
             {
               parse_mode: "Markdown",
-              reply_markup: {
-                inline_keyboard: [
-                  [
-                    {
-                      text: "🔙 Orqaga",
-                      callback_data: "restartAdmin",
-                    },
-                  ],
-                ],
-              },
             }
           );
         }
