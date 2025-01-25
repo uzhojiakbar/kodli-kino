@@ -368,6 +368,106 @@ bot.on("callback_query", async (query) => {
             }
           });
           break;
+        // ADMINLAR MENYUSI ichidagi admin ochirish
+        case "removeAdmin":
+          bot.deleteMessage(chatId, query.message.message_id);
+          waitingForAdmin = chatId;
+
+          bot.sendMessage(
+            chatId,
+            "<b>🆔 /removeAdmin sozidan song ID ni yuboring</b>\n\nmisol: /removeAdmin 2017025737\n\nℹ️ Istalgan insonnni IDsini bu bot qaytaradi: https://t.me/getmyid_bot",
+            {
+              parse_mode: "HTML",
+              reply_markup: {
+                inline_keyboard: [
+                  [
+                    {
+                      text: "🔙 Orqaga",
+                      callback_data: "ShowAdmins",
+                    },
+                  ],
+                ],
+              },
+            }
+          );
+
+          bot.onText(/\/removeAdmin (\d+)/, async (msg, match) => {
+            const responseId = msg.chat.id;
+
+            if (responseId === waitingForAdmin) {
+              if (isAdmin) {
+                const adminId = match[1]; // match[1] da foydalanuvchidan kelgan ID bo'ladi
+                if (adminId && adminId.match(/^\d+$/)) {
+                  db.get(
+                    `SELECT * FROM admins WHERE adminId = ?`,
+                    [String(adminId)],
+                    (err, currentAdmin) => {
+                      if (err) {
+                        console.error(
+                          "Adminni tekshirishda xatolik:",
+                          err.message
+                        );
+                        console.log(err);
+                      } else {
+                        if (currentAdmin) {
+                          db.run(
+                            `DELETE FROM admins WHERE adminId = ?`,
+                            [String(adminId)],
+                            function (err) {
+                              if (err) {
+                                console.error(
+                                  "Adminni o'chirishda xatolik:",
+                                  err.message
+                                );
+                                bot.sendMessage(
+                                  chatId,
+                                  " *Admin o'chirilmadi, nomalum xatolik!*😷",
+                                  {
+                                    parse_mode: "Markdown",
+                                  }
+                                );
+                              } else if (this.changes === 0) {
+                                bot.sendMessage(
+                                  chatId,
+                                  " *Menimcha Bunday ID dagi admin mavjud emas, Hullas ochirilmadi!!*😷",
+                                  {
+                                    parse_mode: "Markdown",
+                                  }
+                                );
+                              } else {
+                                bot.sendMessage(
+                                  chatId,
+                                  " *Admin muvaffaqiyatli o'chirildi. ✅*",
+                                  {
+                                    parse_mode: "Markdown",
+                                  }
+                                );
+                              }
+                            }
+                          );
+
+                          waitingForAdmin = null;
+                        }
+
+                        console.log(currentAdmin);
+                      }
+
+                      if (currentAdmin === undefined) {
+                        bot.sendMessage(
+                          chatId,
+                          " *Menimcha Bunday ID dagi admin mavjud emas, Hullas ochirilmadi!!*😷",
+                          {
+                            parse_mode: "Markdown",
+                          }
+                        );
+                      }
+                    }
+                  );
+                }
+              }
+            }
+          });
+          break;
         //
         case "restartAdmin":
           bot.deleteMessage(chatId, query.message.message_id);
