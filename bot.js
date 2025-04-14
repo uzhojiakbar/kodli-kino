@@ -1009,7 +1009,7 @@ bot.on("callback_query", async (query) => {
           // Videoni kutib olish
           bot.once("video", async (msg) => {
             const videoFileId = msg.video.file_id;
-            const targetChannel = -1002445594841; // Kanal ID
+            const targetChannel = -1002463459268; // Kanal ID
 
             try {
               // Oxirgi kino kodini olish
