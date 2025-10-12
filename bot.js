@@ -116,11 +116,13 @@ const sendFilmByCode = (chatId, userInput, subscribed) => {
       return;
     }
 
+    const ourbot = process.env.TELEGRAM_BOT_USERNAME;
+
     if (film) {
       bot.sendVideo(chatId, film?.videoHash, {
         parse_mode: "Markdown",
         protect_content: true, // Forward qilishni taqiqlash
-        caption: `*Kino kodi:* \`${film?.code}\`\n\n*Eng sara tarjima kinolar va seriallar faqat bizda 🍿\n🤖Bizning bot: @KinoDownload_Robot*`,
+        caption: `*Kino kodi:* \`${film?.code}\`\n\n*Eng sara tarjima kinolar va seriallar faqat bizda 🍿\n🤖Bizning bot: @${ourbot}*`,
       });
     } else {
       bot.sendMessage(
@@ -1009,7 +1011,7 @@ bot.on("callback_query", async (query) => {
           // Videoni kutib olish
           bot.once("video", async (msg) => {
             const videoFileId = msg.video.file_id;
-            const targetChannel = -1002463459268; // Kanal ID
+            const targetChannel = process.env.TELEGRAM_CHANNEL_ID; // Kanal ID
 
             try {
               // Oxirgi kino kodini olish
@@ -1026,10 +1028,12 @@ bot.on("callback_query", async (query) => {
                 const newCode = row.maxCode ? row.maxCode + 1 : 1; // Agar kino bo'lmasa, 1 dan boshlanadi
 
                 // Videoni kanalga yuborish
+                const ourbot = process.env.TELEGRAM_BOT_USERNAME;
+
                 bot
                   .sendVideo(targetChannel, videoFileId, {
                     parse_mode: "Markdown",
-                    caption: `*Kino kodi:* \`${newCode}\`\n\n*Eng sara tarjima kinolar va seriallar faqat bizda 🍿\n🤖Bizning bot: @KinoDownload_Robot*`,
+                    caption: `*Kino kodi:* \`${newCode}\`\n\n*Eng sara tarjima kinolar va seriallar faqat bizda 🍿\n🤖Bizning bot: @${ourbot}*`,
                   })
                   .then((sentMessage) => {
                     const postId = sentMessage.message_id;
@@ -1047,11 +1051,12 @@ bot.on("callback_query", async (query) => {
                           );
                           return;
                         }
+                        const ourbot = process.env.TELEGRAM_BOT_USERNAME;
 
                         // Kino ma'lumotlarini yuborish
                         bot.sendVideo(chatId, videoFileId, {
                           parse_mode: "Markdown",
-                          caption: `*Kino kodi:* \`${newCode}\`\n\n*Eng sara tarjima kinolar va seriallar faqat bizda 🍿\n🤖Bizning bot: @KinoDownload_Robot*`,
+                          caption: `*Kino kodi:* \`${newCode}\`\n\n*Eng sara tarjima kinolar va seriallar faqat bizda 🍿\n🤖Bizning bot: @${ourbot}*`,
                         });
 
                         bot.sendMessage(
