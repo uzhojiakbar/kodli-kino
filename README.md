@@ -1,38 +1,79 @@
-# 🎬 Kodli Kino Bot
+# 🎬 Kodli Kino Bot - Professional Edition
 
-Telegram orqali kino kodni berish va foydalanuvchilar bilan ishlash uchun mo'ljallangan bot. Bu bot foydalanuvchilarga kino kodlari orqali filmlar yuboradi va admin paneli orqali to'liq boshqariladi.
+Modern va professional struktura bilan qurilgan Telegram kino va serial bot. Bu bot foydalanuvchilarga kino kodlari orqali filmlar va seriallar yuboradi hamda to'liq admin paneli bilan boshqariladi.
 
 ## 📋 Loyiha Haqida
 
-**Kodli Kino Bot** - bu Telegram botida foydalanuvchilarga kino kodlari orqali videolar yuboruvchi va admin paneli bilan to'liq boshqariladigan system. Bot SQLite3 ma'lumotlar bazasi bilan ishlaydi va foydalanuvchilardan majburiy kanalga obuna bo'lishni talab qiladi.
+**Kodli Kino Bot** - bu Telegram botida foydalanuvchilarga kino va serial kodlari orqali videolar yuboruvchi va admin paneli bilan to'liq boshqariladigan professional system. Bot SQLite3 ma'lumotlar bazasi bilan ishlaydi va foydalanuvchilardan majburiy kanalga obuna bo'lishni talab qiladi.
 
 ### ✨ Asosiy Xususiyatlar
 
-- 🎥 **Kino Kodi Orqali Video Yuborish** - Foydalanuvchilar kino kodini kiritganda mos video yuboriladi
+- 🎥 **Kino Boshqaruvi** - Kinolarni kod orqali yuborish va boshqarish
+- 📺 **Serial Boshqaruvi** - Seriallarni va qismlarni to'liq boshqarish
 - 👥 **Foydalanuvchi Boshqaruvi** - Avtomatik ro'yxatga olish va statistika
-- 🔐 **Admin Paneli** - Kinolar, adminlar, kanallar boshqaruvi
-- 📢 **Majburiy Obuna** - Kanalga obuna bo'lish talabi
-- 📊 **Statistika** - Real vaqt statistikasi
+- 🔐 **Admin Paneli** - To'liq admin boshqaruv paneli
+- 📢 **Majburiy Obuna** - Kanalga obuna bo'lish talab qilish
+- 📊 **Real-time Statistika** - To'liq hisobotlar va tahlil
 - 📨 **Ommaviy Xabar** - Barcha foydalanuvchilarga xabar yuborish
+- 🏗️ **Professional Struktura** - Modulli va kengaytiriladigan arxitektura
 
-## 🏗️ Loyiha Tuzilishi
+## 🏗️ Professional Loyiha Tuzilishi
 
 ```
 kodli-kino/
-├── bot.js                          # Asosiy bot fayli
-├── package.json                    # Loyiha bog'liqliklariqni
-├── .env                           # Muhim ma'lumotlar (yaratilishi kerak)
-├── bot.db                         # SQLite3 ma'lumotlar bazasi
-├── env-config.txt                 # Environment o'zgaruvchilar namunasi
-└── commands/
-    └── SubscribeCheck/
-        └── index.js               # Obuna tekshirish funksiyasi
+├── src/                           # Asosiy source kod
+│   ├── config/                    # Konfiguratsiya fayllari
+│   │   └── env.js                 # Environment sozlamalari
+│   ├── database/                  # Ma'lumotlar bazasi moduli
+│   │   ├── init.js                # Database initializatsiya
+│   │   ├── userRepository.js      # User CRUD operatsiyalar
+│   │   ├── filmRepository.js      # Film CRUD operatsiyalar
+│   │   ├── serialRepository.js    # Serial CRUD operatsiyalar
+│   │   ├── adminRepository.js     # Admin CRUD operatsiyalar
+│   │   └── channelRepository.js   # Channel CRUD operatsiyalar
+│   ├── handlers/                  # Event handlerlar
+│   │   ├── messageHandler.js      # Message handler
+│   │   ├── callbackHandler.js     # Callback query handler
+│   │   └── callbacks/             # Callback modullari
+│   │       ├── filmCallbacks.js   # Film callback handlers
+│   │       ├── serialCallbacks.js # Serial callback handlers
+│   │       ├── adminCallbacks.js  # Admin callback handlers
+│   │       ├── channelCallbacks.js# Channel callback handlers
+│   │       ├── statsCallbacks.js  # Statistika callback handlers
+│   │       └── broadcastCallbacks.js # Broadcast callback handlers
+│   ├── services/                  # Business logic
+│   │   ├── contentService.js      # Kontent yuborish xizmati
+│   │   └── adminService.js        # Admin xizmatlari
+│   ├── middlewares/               # Middleware funksiyalar
+│   │   └── subscribeCheck.js      # Obuna tekshirish middleware
+│   └── index.js                   # Entry point
+├── .env                           # Environment o'zgaruvchilar
+├── .gitignore                     # Git ignore sozlamalari
+├── package.json                   # NPM konfiguratsiya
+├── README.md                      # Dokumentatsiya
+└── bot.db                         # SQLite3 database
 ```
 
-### 📋 Fayllar haqida:
+### � Modullar va Vazifalar
 
-- **Ishlatilayotgan fayllar**: `bot.js`, `commands/SubscribeCheck/index.js`, `package.json`
-- **Qo'shimcha fayllar**: `bot copy.js` (eski versiya), `models/` (Mongoose modellari - ishlatilmaydi), `commands/adminSend.js`, `commands/sendMessageToAll.js`, `commands/adminpanel/`
+#### **config/** - Konfiguratsiya
+- `env.js` - Environment o'zgaruvchilarni boshqarish
+
+#### **database/** - Ma'lumotlar Bazasi
+- `init.js` - Bazani ishga tushirish va jadvallar yaratish
+- `*Repository.js` - Har bir entity uchun CRUD operatsiyalar
+
+#### **handlers/** - Event Handlerlar
+- `messageHandler.js` - Barcha xabarlarni boshqarish
+- `callbackHandler.js` - Callback querylarni marshrutlash
+- `callbacks/` - Har bir funksiya uchun alohida callback handler
+
+#### **services/** - Business Logic
+- `contentService.js` - Kino/serial yuborish logikasi
+- `adminService.js` - Statistika va broadcast xizmatlari
+
+#### **middlewares/** - Middleware
+- `subscribeCheck.js` - Obuna tekshirish middleware
 
 ## 🛠️ Texnologiyalar
 
@@ -85,10 +126,9 @@ npm run dev
 
 ## 📊 Ma'lumotlar Bazasi Tuzilishi
 
-Bot SQLite3 ma'lumotlar bazasidan foydalanadi va quyidagi jadvallar bilan ishlaydi:
+Bot SQLite3 ma'lumotlar bazasidan foydalanadi:
 
-### `users` jadvali
-
+### `users` - Foydalanuvchilar
 ```sql
 CREATE TABLE users (
   id INTEGER PRIMARY KEY,
@@ -97,8 +137,7 @@ CREATE TABLE users (
 );
 ```
 
-### `films` jadvali
-
+### `films` - Kinolar
 ```sql
 CREATE TABLE films (
   id INTEGER PRIMARY KEY,
@@ -109,16 +148,38 @@ CREATE TABLE films (
 );
 ```
 
-### `admins` jadvali
+### `serials` - Seriallar
+```sql
+CREATE TABLE serials (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  code INTEGER UNIQUE NOT NULL,
+  title TEXT NOT NULL,
+  description TEXT,
+  createdAt TEXT DEFAULT CURRENT_TIMESTAMP
+);
+```
 
+### `serial_episodes` - Serial Qismlari
+```sql
+CREATE TABLE serial_episodes (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  serialCode INTEGER NOT NULL,
+  episodeNumber INTEGER NOT NULL,
+  postId TEXT UNIQUE,
+  videoHash TEXT NOT NULL,
+  count INTEGER DEFAULT 0,
+  FOREIGN KEY (serialCode) REFERENCES serials(code)
+);
+```
+
+### `admins` - Adminlar
 ```sql
 CREATE TABLE admins (
   adminId TEXT UNIQUE NOT NULL PRIMARY KEY
 );
 ```
 
-### `MajburiyKanal` jadvali
-
+### `MajburiyKanal` - Majburiy Kanallar
 ```sql
 CREATE TABLE MajburiyKanal (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -130,109 +191,127 @@ CREATE TABLE MajburiyKanal (
 ## 🎯 Bot Funksiyalari
 
 ### Foydalanuvchi Uchun:
-
 - **Kino Qidirish**: Raqamli kod kiritish orqali film olish
+- **Serial Qidirish**: Serial kodi orqali barcha qismlarni ko'rish
 - **Obuna Tekshirish**: Majburiy kanallarga obuna bo'lish
 
 ### Admin Uchun:
 
-- **🎬 Kino Boshqaruvi**:
-  - Yangi kino qo'shish
-  - Kino o'chirish
-  - Kino qidirish
-- **👥 Admin Boshqaruvi**:
-  - Yangi admin qo'shish (`/addAdmin <user_id>`)
-  - Admin o'chirish (`/removeAdmin <user_id>`)
-  - Adminlar ro'yxati
-- **📢 Kanal Boshqaruvi**:
-  - Majburiy kanal qo'shish (`/q_kanal @username`)
-  - Kanal o'chirish
-  - Kanallar ro'yxati
-- **📊 Statistika**:
-  - Kunlik/haftalik/oylik/yillik foydalanuvchilar
-  - Jami kinolar va foydalanuvchilar soni
-- **📨 Ommaviy Xabar**:
-  - Oddiy xabar yuborish
-  - Forward xabar yuborish
+#### 🎬 Kino Boshqaruvi
+- Yangi kino qo'shish
+- Kino o'chirish (`/delFilm <code>`)
+- Kino qidirish
 
-**Muhim**: Barcha admin funksiyalar SQLite3 ma'lumotlar bazasi orqali boshqariladi.
+#### 📺 Serial Boshqaruvi
+- Serial qo'shish (`/addSerial Nomi | Ma'lumot`)
+- Qism qo'shish (`/addEpisode <serial_kodi>`)
+- Seriallar ro'yxati
+- Serial o'chirish (`/delSerial <code>`)
+
+#### 👥 Admin Boshqaruvi
+- Admin qo'shish (`/addAdmin <user_id>`)
+- Admin o'chirish (`/delAdmin <user_id>`)
+- Adminlar ro'yxati
+
+#### 📢 Kanal Boshqaruvi
+- Kanal qo'shish (`/q_kanal @username`)
+- Kanal o'chirish
+- Kanallar ro'yxati
+
+#### 📊 Statistika
+- Kunlik/haftalik/oylik/yillik hisobotlar
+- Jami foydalanuvchilar
+- Jami kinolar va seriallar
+- Serial qismlari statistikasi
+
+#### 📨 Ommaviy Xabar
+- Oddiy xabar yuborish
+- Forward xabar yuborish
 
 ## 🔧 Asosiy Komandalar
 
 ### Admin Komandalar:
-
-- `/addAdmin <user_id>` - Yangi admin qo'shish
-- `/removeAdmin <user_id>` - Admin o'chirish
-- `/q_kanal @username` - Majburiy kanal qo'shish
-- `/delFilm <code>` - Kino o'chirish
+```bash
+/addAdmin <user_id>          # Yangi admin qo'shish
+/delAdmin <user_id>       # Admin o'chirish
+/q_kanal @username           # Majburiy kanal qo'shish
+/delFilm <code>              # Kino o'chirish
+/addSerial Nomi | Ma'lumot   # Yangi serial qo'shish
+/addEpisode <serial_kodi>    # Serial qismi qo'shish
+/delSerial <code>            # Serial o'chirish
+```
 
 ## 📱 Bot Interfeysi
 
-Bot inline keyboard tugmalari orqali boshqariladi:
-
 ### Admin Panel:
-
 ```
 🛠️ Admin panelga xush kelibsiz!
-┌─────────────────┐
-│ 🎬 Kino         │
-├─────────────────┤
-│ 📋 Adminlar │ 📢 Kanallar │
-├─────────────────┤
-│ 📊 Statistika │ ✉️ Habar yuborish │
-└─────────────────┘
+┌─────────────────────────┐
+│ 🎬 Kino │ 📺 Serial     │
+├─────────────────────────┤
+│ 📋 Adminlar │ 📢 Kanallar│
+├─────────────────────────┤
+│ 📊 Statistika │ ✉️ Habar │
+└─────────────────────────┘
 ```
 
 ### Foydalanuvchi Interfeysi:
-
-- Kino kodi kiritish
-- Obuna tekshirish tugmasi
+- Kino/Serial kodi kiritish
+- Serial qismlari tugmalari
+- Obuna tekshirish
 - Majburiy kanallar ro'yxati
 
 ## 🚀 Deployment
 
 ### Local Server:
-
 ```bash
 npm start
 ```
 
 ### PM2 bilan:
-
 ```bash
-pm2 start bot.js --name "kodli-kino-bot"
+pm2 start src/index.js --name "kodli-kino-bot"
 pm2 save
 pm2 startup
 ```
 
 ### Docker bilan:
-
 ```dockerfile
-# Dockerfile
 FROM node:18
 WORKDIR /app
 COPY package*.json ./
-RUN npm install
+RUN npm install --production
 COPY . .
 EXPOSE 3000
 CMD ["npm", "start"]
 ```
 
+## 🏛️ Arxitektura Prinsiplari
+
+### Clean Architecture
+- **Separation of Concerns** - Har bir modul o'z vazifasini bajaradi
+- **Dependency Injection** - Modullar bir-biriga bog'liq emas
+- **Single Responsibility** - Har bir funksiya bitta vazifani bajaradi
+
+### Design Patterns
+- **Repository Pattern** - Ma'lumotlar bazasi bilan ishlash
+- **Service Layer** - Business logic ajratilgan
+- **Handler Pattern** - Event handlerlar modulli
+
 ## 🔒 Xavfsizlik
 
-- Bot tokeni va boshqa maxfiy ma'lumotlar `.env` faylida saqlanadi
-- Admin huquqlari faqat tasdiqlangan foydalanuvchilarga beriladi
-- Ma'lumotlar bazasi lokal tarzda saqlanadi
-- Video fayllar forward qilish himoyasi bilan yuboriladi
+- Environment o'zgaruvchilar `.env` faylida
+- Admin huquqlari bazada saqlanadi
+- Video forward himoyasi
+- SQL injection himoyasi (parameterized queries)
 
-## 🐛 Debugging va Logging
+## 🐛 Debugging
 
-Bot console.log orqali asosiy harakatlarni logga yozadi:
-
-- Foydalanuvchi qo'shilishi
-- Admin amallarí
-- Xatolik xabarlar
-- Obuna tekshirish natijalari
+Botda xatoliklarni kuzatish:
+```javascript
+console.log("User:", userId);
+console.error("Xatolik:", error.message);
+```
 
 ## 📝 Litsenziya
 
@@ -245,34 +324,29 @@ Telegram: [@anonim_opisis](https://t.me/anonim_opisis)
 
 ## 🤝 Hissa Qo'shish
 
-1. Loyihani fork qiling
-2. Yangi branch yarating (`git checkout -b feature/AmazingFeature`)
-3. O'zgarishlaringizni commit qiling (`git commit -m 'Add some AmazingFeature'`)
-4. Branch'ni push qiling (`git push origin feature/AmazingFeature`)
+1. Fork qiling
+2. Feature branch yarating (`git checkout -b feature/AmazingFeature`)
+3. Commit qiling (`git commit -m 'Add some AmazingFeature'`)
+4. Push qiling (`git push origin feature/AmazingFeature`)
 5. Pull Request oching
 
-## ❓ Savol-Javoblar
+## ❓ FAQ
 
-### Q: Bot ishlamayapti, nima qilish kerak?
+### Q: Botni qanday ishga tushiraman?
+A: `.env` faylini to'ldiring va `npm start` buyrug'ini bajaring.
 
-A: Avval `.env` fayl to'g'ri to'ldirilganini tekshiring, keyin `npm install` bajaring.
+### Q: Serial funksiyasi qanday ishlaydi?
+A: Avval serial qo'shing (`/addSerial`), keyin qismlarni qo'shing (`/addEpisode`).
 
-### Q: Yangi admin qo'sha olmayman?
+### Q: Ma'lumotlar bazasi qaerda saqlanadi?
+A: `bot.db` fayli loyiha ildizida avtomatik yaratiladi.
 
-A: Siz admin ekanligingizni tekshiring va foydalanuvchi ID ni to'g'ri kiritdingizni tasdiqlang. `/addAdmin <user_id>` formatida kiriting.
+### Q: Yangi feature qanday qo'shaman?
+A: Tegishli modulga (handlers/services) yangi funksiya qo'shing.
 
-### Q: Video yuklashda xatolik chiqyapti?
-
-A: `TELEGRAM_CHANNEL_ID` to'g'ri kiritilganini va bot kanal adminı ekanligini tekshiring.
-
-### Q: Ma'lumotlar bazasi o'chib ketdi?
-
-A: `bot.db` fayli mavjudligini tekshiring, agar yo'q bo'lsa avtomatik yaratiladi.
-
-### Q: Mongoose bilan ishlashim kerakmi?
-
-A: Yo'q, bu bot faqat SQLite3 bilan ishlaydi. `models/` papkasidagi fayllar ishlatilmaydi.
+### Q: Eski bot.js dan migration qanday?
+A: Yangi struktura to'liq ishlaydi, `.env` ni yangilang va `npm start` bajaring.
 
 ---
 
-**Muhim:** Bot ishlatishdan oldin barcha environment o'zgaruvchilarni to'ldiring va botga kerakli ruxsatlarni bering.
+**Muhim:** Professional struktura kodni oson boshqarish, kengaytirish va debug qilishni ta'minlaydi!

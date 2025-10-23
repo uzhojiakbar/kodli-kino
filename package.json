@@ -2,11 +2,11 @@
   "name": "kinobot",
   "version": "1.0.0",
   "description": "Kodli kino bot. Dasturchi: Murodillayev Hojiakbar @anonim_opisis",
-  "main": "bot.js",
+  "main": "src/index.js",
   "scripts": {
-    "start": "node bot.js",
+    "start": "node src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon bot.js"
+    "dev": "nodemon src/index.js"
   },
   "keywords": [],
   "author": "",

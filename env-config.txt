@@ -1,3 +1,0 @@
-TELEGRAM_BOT_TOKEN=""
-dbPath="db/kinobotali.db"
-TELEGRAM_CHANNEL_ID="-100"
